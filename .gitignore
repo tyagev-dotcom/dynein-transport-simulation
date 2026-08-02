@@ -8,6 +8,7 @@ bin/
 *.pdb
 
 # Simulation outputs generated during runs
+dynein_simulation_output.txt
 output-*.txt
 print.txt
 *.sh.o
@@ -23,6 +24,3 @@ desktop.ini
 # Large or manuscript-local files
 *.pdf
 *.zip
-
-# Keep reference outputs committed
-!examples/reference_outputs/output-*.txt

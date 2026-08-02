@@ -1,0 +1,24 @@
+# Dynein transport simulation input file
+#
+# Fill in one value per parameter. Lines starting with # are ignored.
+# Units are SI units unless noted otherwise.
+
+# 1. Number of grafted dynein motors on the nanoparticle
+# Example: 1 for a single-dynein particle, 6 for the default manuscript setting
+6
+
+# 2. Number of nanoparticle simulation runs
+# Higher values improve statistics but increase runtime
+200
+
+# 3. Nanoparticle radius [meters]
+# Example: 20e-9 = 20 nm
+20e-9
+
+# 4. Dynein persistence length [meters]
+# Example: 1e-6 = 1 micrometer
+1e-6
+
+# 5. Polymer length [meters]
+# Example: 4.256e-8 = 42.56 nm
+4.256e-8

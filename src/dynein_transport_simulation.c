@@ -4,6 +4,7 @@
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #ifdef _WIN32
 #define OS_WINDOWS
@@ -19,16 +20,16 @@
 // Global Parameters
 // ----------------------------
 
-#define numMotors 6                // Number of grafted motors
-#define numTrials 10              // Number of nanoparticle simulation runs
+#define MAX_MOTORS 100
+int numMotors;
+int numTrials;
 #define radiusMT (12.5e-9)         // Microtubule radius
-#define radiusNC 20e-9             // Nanoparticle radius
+double radiusNC;             // Nanoparticle radius
 #define effTemp 1900               // Effective temperature for energy scaling
 #define dynein_height 60e-9        // Dynein height
 #define dyenin_diameter 10e-9      // Dynein diameter
 #define dyenin_diameter_path 12e-9 // Dynein path width
-#define dyenin_pers_length                                                     \
-  1e-6 // Persistence length of dynein (semi-flexible polymer)
+double dyenin_pers_length;   // Persistence length of dynein (semi-flexible polymer)
 #define meshLimit_walk 102   // Size of walk mesh array
 #define meshLimit_att 49     // Size of attachment mesh array
 #define dataSize 80000       // Max number of iterations (steps/attach/detach)
@@ -41,7 +42,8 @@
 #define GRADIENT_THRESHOLD 1e-27
 
 // Dynein Gradient decsent variables
-#define DYENIN_N 10
+int dyenin_N;
+#define MAX_DYENIN_N 200
 #define min_delta_E 1e-27 // Tunable threshold for energy change
 #define DYNEIN_MAX_ITER 30
 #define DYNEIN_LEARNING_RATE 1e16
@@ -50,7 +52,7 @@
 // Global Variables
 // ----------------------------
 
-double PolymerLength = 4.256e-8; // 4.256e-8
+double PolymerLength;
 double aPolymer = 0.75e-9;
 double Na;       // Will be calculated at runtime
 double R0_Globe; // Will be calculated at runtime
@@ -76,6 +78,20 @@ int numThreads; // number of available threads for the simulation
 struct ThreadData *threadData;
 pthread_mutex_t mutex, task_mutex;
 pthread_t *threads;
+
+static int read_next_number(FILE *file, char *buffer, size_t buffer_size) {
+  while (fgets(buffer, (int)buffer_size, file) != NULL) {
+    char *cursor = buffer;
+    while (*cursor == ' ' || *cursor == '\t') {
+      cursor++;
+    }
+    if (*cursor == '\0' || *cursor == '\n' || *cursor == '#') {
+      continue;
+    }
+    return 1;
+  }
+  return 0;
+}
 
 #ifdef _WIN32
 LONG trial = 0;
@@ -304,7 +320,7 @@ double xy_WalkProb[] = {
 // ----------------------------
 
 struct MotorData {
-  double motors[numMotors][6]; // [attached?, phi, theta, x_MT, y_MT, unused]
+  double motors[MAX_MOTORS][6]; // [attached?, phi, theta, x_MT, y_MT, unused]
   double distance2MT;
   double IterationDeltaX, IterationDeltaY;
   double TotalDeltaX, TotalDeltaY;
@@ -317,9 +333,9 @@ struct BalanceMovment {
 
 struct DeltaTime {
   double Probability[3]; // [stepRate, SumDetach, SumAttach]
-  double attachRate[numMotors][meshLimit_att];
-  double detachRate[numMotors];
-  double AttachProb[numMotors];
+  double attachRate[MAX_MOTORS][meshLimit_att];
+  double detachRate[MAX_MOTORS];
+  double AttachProb[MAX_MOTORS];
 };
 
 struct SimulationResults {
@@ -376,9 +392,9 @@ void rotateMotor(struct MotorData *Motors, double xRot, double yRot,
 int attMotors(struct MotorData Motors);
 double energy(struct MotorData Motors);
 _Bool excludedVolume(int ChoosenMotor, double yNextLocation,
-                     double xNextLocation, double motors[numMotors][6]);
+                     double xNextLocation, double motors[MAX_MOTORS][6]);
 _Bool isPathClear(int steppingMotor, double xCurr, double yCurr, double xNext,
-                  double yNext, double motors[numMotors][6]);
+                  double yNext, double motors[MAX_MOTORS][6]);
 struct DeltaTime deltaTime(struct MotorData Motors);
 int monteCarloSelect(double *values, int size, unsigned int *seed);
 int selectAttachedMotor(struct MotorData);
@@ -614,14 +630,14 @@ double compute_zPrime2D(double P_attach2D[2], double V_polymer2D[2]) {
          (P_attach2D[0] * V_polymer2D[0] + P_attach2D[1] * V_polymer2D[1]);
 }
 
-double compute_total_energy(double angles[DYENIN_N - 1], double P_base2D[2],
+double compute_total_energy(double *angles, double P_base2D[2],
                             double P_attach2D[2], double phi0) {
   double kappa = kb * Temper * dyenin_pers_length;
   double phi = phi0;
   double pos[2] = {P_base2D[0], P_base2D[1]}; // Start at actual dynein base
-  double SEGMENT_LENGTH = dynein_height / DYENIN_N;
+  double SEGMENT_LENGTH = dynein_height / dyenin_N;
 
-  for (int i = 0; i < DYENIN_N; i++) {
+  for (int i = 0; i < dyenin_N; i++) {
     if (i > 0)
       phi += angles[i - 1];
     pos[0] += SEGMENT_LENGTH * cos(phi);
@@ -635,7 +651,7 @@ double compute_total_energy(double angles[DYENIN_N - 1], double P_base2D[2],
   double M = linker_length * linker_length;
 
   double Ebend = 0.0;
-  for (int i = 0; i < DYENIN_N - 1; i++) {
+  for (int i = 0; i < dyenin_N - 1; i++) {
     Ebend += (kappa / SEGMENT_LENGTH) * (1.0 - cos(angles[i]));
   }
 
@@ -650,7 +666,7 @@ double compute_total_energy(double angles[DYENIN_N - 1], double P_base2D[2],
 }
 
 double minimize_total_energy(double P_attach[3], double P_base[3],
-                             double P_tip[3], double angles[DYENIN_N - 1]) {
+                             double P_tip[3], double *angles) {
 
   double V_dyenin[3] = {P_tip[0] - P_base[0], P_tip[1] - P_base[1],
                         P_tip[2] - P_base[2]};
@@ -670,7 +686,7 @@ double minimize_total_energy(double P_attach[3], double P_base[3],
                              P_tip2D[1] - P_base2D[1]};
   double phi0 = atan2(V_base_tip_2D[1], V_base_tip_2D[0]);
 
-  for (int i = 0; i < DYENIN_N - 1; i++)
+  for (int i = 0; i < dyenin_N - 1; i++)
     angles[i] = 0.0;
 
   double initial_E = compute_total_energy(angles, P_base2D, P_attach2D, phi0);
@@ -682,10 +698,10 @@ double minimize_total_energy(double P_attach[3], double P_base[3],
   energy_history[energy_count++] = E_prev;
 
   for (int iter = 0; iter < DYNEIN_MAX_ITER; iter++) {
-    double grad[DYENIN_N - 1];
+    double grad[MAX_DYENIN_N];
     double delta = 1e-6;
 
-    for (int j = 0; j < DYENIN_N - 1; j++) {
+    for (int j = 0; j < dyenin_N - 1; j++) {
       double saved = angles[j];
       angles[j] += delta;
       double E2 = compute_total_energy(angles, P_base2D, P_attach2D, phi0);
@@ -693,7 +709,7 @@ double minimize_total_energy(double P_attach[3], double P_base[3],
       angles[j] = saved;
     }
 
-    for (int j = 0; j < DYENIN_N - 1; j++) {
+    for (int j = 0; j < dyenin_N - 1; j++) {
       angles[j] -= DYNEIN_LEARNING_RATE * grad[j];
     }
 
@@ -729,7 +745,7 @@ double energy_discrete(struct MotorData Motors) {
            sqrt(pow((radiusMT + dynein_height), 2) -
                 pow((Ymt * (radiusMT + dynein_height) / radiusMT), 2)));
 
-      double angles[DYENIN_N - 1];
+      double angles[MAX_DYENIN_N];
 
       // Example configuration
       double P_attach[3] = {x, y, z};
@@ -943,9 +959,8 @@ double CalculateEnergyGradient(struct MotorData Motors, int axis) {
   return (energyPlus - energyMinus) / h;
 }
 
-// Check if proposed position violates excluded volume constraint
 _Bool excludedVolume(int ChoosenMotor, double yNextLocation,
-                     double xNextLocation, double motors[numMotors][6]) {
+                     double xNextLocation, double motors[MAX_MOTORS][6]) {
   for (int i = 0; i < numMotors; i++) {
     if (i != ChoosenMotor && motors[i][0]) {
       double dx = xNextLocation - motors[i][4];
@@ -962,7 +977,7 @@ _Bool excludedVolume(int ChoosenMotor, double yNextLocation,
 
 // Check if the stepping path is clear from obstructions
 _Bool isPathClear(int steppingMotor, double xCurr, double yCurr, double xNext,
-                  double yNext, double motors[numMotors][6]) {
+                  double yNext, double motors[MAX_MOTORS][6]) {
   int numSteps = 100;
   for (int i = 0; i < numMotors; i++) {
     if (i != steppingMotor && motors[i][0]) {
@@ -1629,6 +1644,33 @@ int main(void) {
   double XMSDlist[dataIntervalSize] = {0}, OneMotorWalkProb[meshLimit_walk];
   time_t start_time, end_time;
 
+  FILE *infile = fopen("dynein_simulation_input.txt", "r");
+  if (infile == NULL) {
+    printf("Error: Could not open dynein_simulation_input.txt\n");
+    return 1;
+  }
+  char input_line[256];
+  if (!read_next_number(infile, input_line, sizeof(input_line)) ||
+      sscanf(input_line, "%d", &numMotors) != 1 ||
+      !read_next_number(infile, input_line, sizeof(input_line)) ||
+      sscanf(input_line, "%d", &numTrials) != 1 ||
+      !read_next_number(infile, input_line, sizeof(input_line)) ||
+      sscanf(input_line, "%lf", &radiusNC) != 1 ||
+      !read_next_number(infile, input_line, sizeof(input_line)) ||
+      sscanf(input_line, "%lf", &dyenin_pers_length) != 1 ||
+      !read_next_number(infile, input_line, sizeof(input_line)) ||
+      sscanf(input_line, "%lf", &PolymerLength) != 1) {
+    printf("Error: Failed to read parameters from dynein_simulation_input.txt\n");
+    fclose(infile);
+    return 1;
+  }
+  fclose(infile);
+
+  // Redefine the number of segments dynamically based on the persistence length (Lp)
+  dyenin_N = (int)round(2e-6 / dyenin_pers_length * 10);
+  if (dyenin_N < 2) dyenin_N = 2;
+  if (dyenin_N > MAX_DYENIN_N) dyenin_N = MAX_DYENIN_N;
+
   // Calculate q0.
   Na = (PolymerLength) / (aPolymer); // Compute Na at runtime
   R0_Globe = sqrt(Na) * aPolymer;    // Compute R0_Globe at runtime
@@ -1652,7 +1694,8 @@ int main(void) {
   start_time = time(NULL); // Record the start time
   initializeThreads();
   allocateSimulationResults(&Results);
-  printf("The simulation of %d motors as started \n", numMotors);
+  printf("The simulation with %d grafted dynein motor(s) has started.\n",
+         numMotors);
   // Parallel NP Running calculation using threads
 
   // assignThreadRanges(numTrials, numThreads, &Thread_active,
@@ -1682,12 +1725,12 @@ int main(void) {
                                     Stat.Time.mean, XMSDlist);
 
   // save data
-  FILE *file = fopen("output-NP-LP1.txt", "w"); // Open the file in write mode
+  FILE *file =
+      fopen("dynein_simulation_output.txt", "w"); // Open the file in write mode
   if (file == NULL) {
     printf("Error opening file!\n");
     return 1;
   }
-  fprintf(file, "Lp = %e\n", dyenin_pers_length);
   // End time
   end_time = time(NULL); // Record the end time
 
@@ -1696,8 +1739,11 @@ int main(void) {
   // Print the runtime
   printf("Time taken: %f seconds\n", elapsed_seconds);
 
-  fprintf(file, "number of particles = %d\n", numTrials);
-  fprintf(file, "This is a Simulation for NP with %d motors\n\n", numMotors);
+  fprintf(file, "Number of grafted motors = %d\n", numMotors);
+  fprintf(file, "Number of nanoparticle simulation runs = %d\n", numTrials);
+  fprintf(file, "Nanoparticle radius = %e\n", radiusNC);
+  fprintf(file, "Persistence length of dynein = %e\n", dyenin_pers_length);
+  fprintf(file, "Polymer length = %e\n\n", PolymerLength);
   fprintf(file, "%-25s %-20s %-20s %-20s\n", "Parameter", "Mean", "+/- SEM",
           "STD"); // Header
   fprintf(file, "%-25s %-20.2e %-20.2e %-20.2e\n", "Motors connected",
