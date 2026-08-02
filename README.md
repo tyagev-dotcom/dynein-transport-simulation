@@ -102,4 +102,4 @@ Please cite the associated manuscript when using this code. A `CITATION.cff.temp
 
 ## License
 
-No open-source license has been selected yet. Before public release, the manuscript team should choose a license and replace `LICENSE.md` with the final approved license text.
+This project is released under the BSD 3-Clause License. See `LICENSE.md`.
