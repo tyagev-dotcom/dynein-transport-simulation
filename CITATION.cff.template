@@ -1,0 +1,12 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite the associated manuscript."
+title: "Dynein nanoparticle transport simulation"
+authors:
+  - family-names: "Yagev"
+    given-names: "Tal"
+  - family-names: "TODO"
+    given-names: "TODO"
+date-released: "TODO"
+version: "TODO"
+doi: "TODO"
+url: "TODO"

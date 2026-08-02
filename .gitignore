@@ -1,0 +1,28 @@
+# Build outputs
+bin/
+*.exe
+*.obj
+*.o
+*.dll
+*.lib
+*.pdb
+
+# Simulation outputs generated during runs
+output-*.txt
+print.txt
+*.sh.o
+*.sh.e
+
+# Local/editor files
+.DS_Store
+Thumbs.db
+desktop.ini
+.vscode/
+.vs/
+
+# Large or manuscript-local files
+*.pdf
+*.zip
+
+# Keep reference outputs committed
+!examples/reference_outputs/output-*.txt
