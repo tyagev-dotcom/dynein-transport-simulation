@@ -1,8 +1,16 @@
 # Dynein Transport Simulation
 
-This repository contains a C simulation for dynein-driven transport of a rigid nanoparticle along a microtubule.
+This repository contains the C simulation code used in the associated manuscript, **“Modeling Nano-Particle-PEG-NLS Complexes for Nucleus Targeted Drug Delivery: Revisiting the Multi-Dynein Nano-Cargo Transport on Microtubules”**, by Tal Yagev, Itay Fayer, Itay Adar, Gal Halbi, Anne Bernheim-Groswasser, and Rony Granek.
 
-The code was prepared for manuscript revision and public archival. The repository should remain private until the manuscript team approves public release.
+## Scientific Overview
+
+The simulation models the transport of a rigid, spherical nanoparticle along a microtubule by multiple dynein motors attached to the particle through flexible polymer linkers. The model is motivated by nanoparticle delivery systems decorated with polyethylene glycol (PEG) and nuclear localization signal (NLS) peptides, which can recruit the cellular dynein transport machinery. Its purpose is to investigate how motor number, nanoparticle size, polymer length, and dynein flexibility affect transport toward the nuclear region.
+
+The model combines stochastic motor binding, unbinding, and stepping with mechanical relaxation of the motor–linker–cargo configuration. Event rates depend on energies associated with polymer-linker stretching, dynein bending, and motor binding to the microtubule. Following each event, gradient descent is used to relax the configuration. The model described in the manuscript treats dynein as a semi-flexible polymer and checks steric exclusion along the complete stepping path, rather than only at the final binding site.
+
+Repeated simulated transport runs provide the basis for the manuscript's analysis of longitudinal velocity, run distance, and run time, as well as motor engagement and rotational motion. The manuscript compares the model with experimental motility data and explores how polymer length and motor loading affect the trade-off between transport speed and persistence. These calculations concern transport along a microtubule; they do not simulate the entire drug-delivery process or passage through the nuclear pore.
+
+The simulation writes results to `dynein_simulation_output.txt`. The manuscript and its supporting information provide the full model, assumptions, parameter definitions, and analysis methods.
 
 ## Files
 
@@ -11,11 +19,11 @@ The code was prepared for manuscript revision and public archival. The repositor
 | `src/dynein_transport_simulation.c` | Main simulation source code. |
 | `dynein_simulation_input.txt` | Easy-to-edit input file for the simulation parameters. |
 | `scripts/` | Convenience scripts for building and running the simulation. |
-| `docs/` | Setup notes and publication checklist. |
+| `docs/` | Setup notes. |
 
 ## Input Parameters
 
-Edit `dynein_simulation_input.txt` before running the simulation. The file contains one value per parameter:
+Edit `dynein_simulation_input.txt` before running the simulation. **The file contains one value per parameter, each parameter in a separate line, in the following order:**
 
 1. Number of grafted dynein motors on the nanoparticle
 2. Number of nanoparticle simulation runs
@@ -24,6 +32,8 @@ Edit `dynein_simulation_input.txt` before running the simulation. The file conta
 5. Polymer length in meters
 
 Lines starting with `#` are comments and are ignored by the simulation.
+
+All three length parameters must be entered in meters, not nanometers or micrometers. For example, 20 nm is `2.0e-8` meters, and 2 micrometers is `2.0e-6` meters. The number of grafted motors is distinct from the number simultaneously bound to the microtubule, which changes during a simulated run.
 
 ## Requirements
 
@@ -72,7 +82,7 @@ For Visual Studio, create a C console project and add `src/dynein_transport_simu
 
 ## Run
 
-Make sure `dynein_simulation_input.txt` is in the repository root, then run:
+Make sure `dynein_simulation_input.txt` is in the repository root, then run from that directory:
 
 ```sh
 ./bin/dynein_transport_simulation
@@ -84,22 +94,35 @@ On Windows PowerShell:
 .\bin\dynein_transport_simulation.exe
 ```
 
+## Output and Interpretation
+
 The simulation writes:
 
 ```text
 dynein_simulation_output.txt
 ```
 
+The scientific analysis in the associated manuscript concerns nanoparticle transport statistics, including longitudinal velocity, run distance, run time, the number of microtubule-bound motors, and rotational motion. These observables are defined in the manuscript; their calculation may involve analysis beyond the raw simulation output.
+
+Keep each output file together with the corresponding input file and code version so that the simulation conditions remain identifiable.
+
 ## Reproducibility Notes
 
 - The simulation uses stochastic sampling, so repeated runs may differ unless random seeding is made fully explicit.
 - Runtime depends strongly on the number of simulation runs and motors.
-- Compiled binaries, object files, local PDFs, and temporary output files are intentionally excluded from version control.
+- The five input-file parameters do not constitute the entire model specification. Consult the source code, manuscript, and supporting information for other model constants and assumptions.
+- Compiled binaries, object files, and temporary output files are intentionally excluded from version control.
 
 ## Citation
 
-Please cite the associated manuscript when using this code. A `CITATION.cff.template` file is included and should be finalized after the manuscript metadata are confirmed.
+If you use this code, please cite the associated manuscript:
+
+> Yagev, T., Fayer, I., Adar, I., Halbi, G., Bernheim-Groswasser, A., and Granek, R. (2026). *Modeling Nano-Particle-PEG-NLS Complexes for Nucleus Targeted Drug Delivery: Revisiting the Multi-Dynein Nano-Cargo Transport on Microtubules*. Unpublished manuscript.
+
+Repository: [Dynein Transport Simulation](https://github.com/tyagev-dotcom/dynein-transport-simulatio).
 
 ## License
 
-This project is released under the BSD 3-Clause License. See `LICENSE.md`.
+The simulation code is released under the BSD 3-Clause License. See `LICENSE.md`.
+
+The software license does not apply to the associated manuscript or supporting information, which retain their applicable copyright and sharing terms.
