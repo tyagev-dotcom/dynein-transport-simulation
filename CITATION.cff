@@ -1,0 +1,38 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite the associated research article."
+title: "Dynein nanoparticle transport simulation"
+type: software
+authors:
+  - family-names: "Yagev"
+    given-names: "Tal"
+  - family-names: "Fayer"
+    given-names: "Itay"
+  - family-names: "Adar"
+    given-names: "Itay"
+  - family-names: "Halbi"
+    given-names: "Gal"
+  - family-names: "Bernheim-Groswasser"
+    given-names: "Anne"
+  - family-names: "Granek"
+    given-names: "Rony"
+repository-code: "https://github.com/tyagev-dotcom/dynein-transport-simulation"
+preferred-citation:
+  type: article
+  title: "Modelling nano-particle-PEG-NLS complexes for nucleus-targeted drug delivery: revisiting the multi-dynein nano-cargo transport on microtubules"
+  authors:
+    - family-names: "Yagev"
+      given-names: "Tal"
+    - family-names: "Fayer"
+      given-names: "Itay"
+    - family-names: "Adar"
+      given-names: "Itay"
+    - family-names: "Halbi"
+      given-names: "Gal"
+    - family-names: "Bernheim-Groswasser"
+      given-names: "Anne"
+    - family-names: "Granek"
+      given-names: "Rony"
+  journal: "Drug Delivery"
+  year: 2026
+  doi: "10.1080/10717544.2026.2738276"
+  url: "https://doi.org/10.1080/10717544.2026.2738276"

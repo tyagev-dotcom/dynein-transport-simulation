@@ -1,6 +1,6 @@
 # Dynein Transport Simulation
 
-This repository contains the C simulation code used in the associated manuscript, **“Modeling Nano-Particle-PEG-NLS Complexes for Nucleus Targeted Drug Delivery: Revisiting the Multi-Dynein Nano-Cargo Transport on Microtubules”**, by Tal Yagev, Itay Fayer, Itay Adar, Gal Halbi, Anne Bernheim-Groswasser, and Rony Granek.
+This repository contains the C simulation code used in the associated article, **“Modelling nano-particle-PEG-NLS complexes for nucleus-targeted drug delivery: revisiting the multi-dynein nano-cargo transport on microtubules”**, by Tal Yagev, Itay Fayer, Itay Adar, Gal Halbi, Anne Bernheim-Groswasser, and Rony Granek.
 
 ## Scientific Overview
 
@@ -115,11 +115,13 @@ Keep each output file together with the corresponding input file and code versio
 
 ## Citation
 
-If you use this code, please cite the associated manuscript:
+If you use this software, please cite:
 
-> Yagev, T., Fayer, I., Adar, I., Halbi, G., Bernheim-Groswasser, A., and Granek, R. (2026). *Modeling Nano-Particle-PEG-NLS Complexes for Nucleus Targeted Drug Delivery: Revisiting the Multi-Dynein Nano-Cargo Transport on Microtubules*. Unpublished manuscript.
+> Tal Yagev, Itay Fayer, Itay Adar, Gal Halbi, Anne Bernheim-Groswasser, and Rony Granek (2026). “Modelling nano-particle-PEG-NLS complexes for nucleus-targeted drug delivery: revisiting the multi-dynein nano-cargo transport on microtubules.” *Drug Delivery*. [https://doi.org/10.1080/10717544.2026.2738276](https://doi.org/10.1080/10717544.2026.2738276)
 
-Repository: [Dynein Transport Simulation](https://github.com/tyagev-dotcom/dynein-transport-simulatio).
+Citation metadata are also available in [`CITATION.cff`](CITATION.cff).
+
+Repository: [Dynein Transport Simulation](https://github.com/tyagev-dotcom/dynein-transport-simulation).
 
 ## License
 
