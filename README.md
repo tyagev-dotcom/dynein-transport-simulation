@@ -4,13 +4,13 @@ This repository contains the C simulation code used in the associated article, *
 
 ## Scientific Overview
 
-The simulation models the transport of a rigid, spherical nanoparticle along a microtubule by multiple dynein motors attached to the particle through flexible polymer linkers. The model is motivated by nanoparticle delivery systems decorated with polyethylene glycol (PEG) and nuclear localization signal (NLS) peptides, which can recruit the cellular dynein transport machinery. Its purpose is to investigate how motor number, nanoparticle size, polymer length, and dynein flexibility affect transport toward the nuclear region.
+The simulation models the transport of a spherical nanoparticle along a microtubule by multiple dynein motors connected to the particle through flexible polymer linkers. It was developed to study PEG–NLS-decorated nanoparticles that recruit dynein for transport toward the nuclear envelope.
 
-The model combines stochastic motor binding, unbinding, and stepping with mechanical relaxation of the motor–linker–cargo configuration. Event rates depend on energies associated with polymer-linker stretching, dynein bending, and motor binding to the microtubule. Following each event, gradient descent is used to relax the configuration. The model described in the manuscript treats dynein as a semi-flexible polymer and checks steric exclusion along the complete stepping path, rather than only at the final binding site.
+The model extends our previous multi-dynein transport framework by introducing two key features: **semi-flexible dynein motors** and **steric exclusion along the complete motor-stepping path**. Motor binding, unbinding, and stepping are simulated stochastically, while the nanoparticle, linkers, and motors mechanically relax after each event through energy minimization.
 
-Repeated simulated transport runs provide the basis for the manuscript's analysis of longitudinal velocity, run distance, and run time, as well as motor engagement and rotational motion. The manuscript compares the model with experimental motility data and explores how polymer length and motor loading affect the trade-off between transport speed and persistence. These calculations concern transport along a microtubule; they do not simulate the entire drug-delivery process or passage through the nuclear pore.
+The simulations are used to study how **dynein loading, PEG linker length, and nanoparticle properties affect transport velocity, run distance, and run time**. The model reproduces the experimentally observed dependence of nanoparticle motility on motor number and can therefore be used to explore design rules for dynein-powered, nucleus-directed nanoparticle delivery. Under the conditions studied in the paper, the simulations predict an optimal PEG contour length of approximately **40 nm** for maximizing run distance and processivity.
 
-The simulation writes results to `dynein_simulation_output.txt`. The manuscript and its supporting information provide the full model, assumptions, parameter definitions, and analysis methods.
+The simulation writes its results to `dynein_simulation_output.txt`. Full details of the model, parameters, assumptions, and analysis are provided in the manuscript and Supporting Information.
 
 ## Files
 
